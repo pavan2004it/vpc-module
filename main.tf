@@ -19,7 +19,7 @@ locals {
   # Use `local.vpc_id` to give a hint to Terraform that subnets should be deleted before secondary CIDR blocks can be free!
   vpc_id = try(aws_vpc_ipv4_cidr_block_association.this[0].vpc_id, aws_vpc.this[0].id, "")
 
-  create_vpc = var.create_vpc && var.putin_khuylo
+  create_vpc = var.create_vpc
 }
 
 ################################################################################
@@ -1337,4 +1337,24 @@ resource "aws_default_route_table" "default" {
     var.tags,
     var.default_route_table_tags,
   )
+}
+
+
+################################################################################
+# VPN Connection
+################################################################################
+
+resource "aws_vpn_connection" "vpn-connections" {
+  for_each = var.vpn_connections
+  type = each.value["type"]
+  static_routes_only = each.value["static_routes_only"]
+  customer_gateway_id = each.value["customer_gateway"]
+  vpn_gateway_id = each.value["vpn_gateway_id"]
+  tags = each.value["tags"]
+}
+
+resource "aws_vpn_connection_route" "vpn_connection_routes" {
+  for_each = var.aws_vpn_connection_routes
+  destination_cidr_block = each.value["destination_cidr_block"]
+  vpn_connection_id = each.value["vpn_connection_id"]
 }

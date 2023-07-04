@@ -616,3 +616,11 @@ output "name" {
   description = "The name of the VPC specified as argument to this module"
   value       = var.name
 }
+
+################################################################################
+# VPN Outputs
+################################################################################
+
+output "vpn_ids" {
+  value      = [for k, v in aws_vpn_connection.vpn-connections : v.id]
+}
