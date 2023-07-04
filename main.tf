@@ -1348,7 +1348,7 @@ resource "aws_vpn_connection" "vpn-connections" {
   for_each = var.vpn_connections
   type = each.value["type"]
   static_routes_only = each.value["static_routes_only"]
-  customer_gateway_id = each.value["customer_gateway"]
+  customer_gateway_id = each.value["customer_gateway_id"]
   vpn_gateway_id = each.value["vpn_gateway_id"]
   tags = each.value["tags"]
 }
