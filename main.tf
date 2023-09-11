@@ -656,7 +656,7 @@ resource "aws_route_table" "private_route_table" {
   }
 }
 
-resource "aws_route_table_association" "protected-association" {
+resource "aws_route_table_association" "private-association" {
   count = local.create_alb_subnets ? local.len_alb_subnets : 0
   subnet_id = local.private_subnet_ids[count.index]
   route_table_id = element(
@@ -665,11 +665,11 @@ resource "aws_route_table_association" "protected-association" {
   )
 }
 
-resource "aws_route" "protected_route" {
+resource "aws_route" "private_route" {
   for_each = var.private_routes
   route_table_id = element(
     coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
+    var.create_private_subnet_route_table ? 1: 0,
   )
   destination_cidr_block = each.value.destination_cidr_block
   vpc_endpoint_id = lookup(each.value, "endpoint_id", null)
