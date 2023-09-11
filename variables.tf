@@ -1409,6 +1409,7 @@ variable "create_protected_route_table" {
 variable "firewall_routes" {
   type = list(object({
     destination_cidr_block = string
+    gateway_id = optional(string)
   }))
 }
 
