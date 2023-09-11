@@ -14,7 +14,7 @@ variable "name" {
   default     = ""
 }
 
-variable "cidr" {
+variable "vpc_cidr" {
   description = "(Optional) The IPv4 CIDR block for the VPC. CIDR can be explicitly set or it can be derived from IPAM using `ipv4_netmask_length` & `ipv4_ipam_pool_id`"
   type        = string
   default     = "10.0.0.0/16"
@@ -425,6 +425,238 @@ variable "private_acl_tags" {
 }
 
 ################################################################################
+# AZDO Subnets
+################################################################################
+
+variable "azdo_subnets" {
+  description = "A list of database subnets inside the VPC"
+  type        = list(string)
+  default     = []
+}
+
+variable "azdo_subnet_assign_ipv6_address_on_creation" {
+  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
+  type        = bool
+  default     = false
+}
+
+variable "azdo_subnet_enable_dns64" {
+  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
+  type        = bool
+  default     = true
+}
+
+variable "azdo_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
+  type        = bool
+  default     = true
+}
+
+variable "azdo_subnet_enable_resource_name_dns_a_record_on_launch" {
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
+  type        = bool
+  default     = false
+}
+
+variable "azdo_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 database subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  type        = list(string)
+  default     = []
+}
+
+variable "azdo_subnet_ipv6_native" {
+  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
+  type        = bool
+  default     = false
+}
+
+variable "azdo_subnet_private_dns_hostname_type_on_launch" {
+  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
+  type        = string
+  default     = null
+}
+
+variable "azdo_subnet_names" {
+  description = "Explicit values to use in the Name tag on database subnets. If empty, Name tags are generated"
+  type        = list(string)
+  default     = []
+}
+
+variable "azdo_subnet_suffix" {
+  description = "Suffix to append to database subnets name"
+  type        = string
+  default     = "db"
+}
+
+variable "create_azdo_subnet_route_table" {
+  description = "Controls if separate route table for database should be created"
+  type        = bool
+  default     = false
+}
+
+variable "create_azdo_internet_gateway_route" {
+  description = "Controls if an internet gateway route for public database access should be created"
+  type        = bool
+  default     = false
+}
+
+variable "create_azdo_nat_gateway_route" {
+  description = "Controls if a nat gateway route should be created to give internet access to the database subnets"
+  type        = bool
+  default     = false
+}
+
+variable "azdo_route_table_tags" {
+  description = "Additional tags for the database route tables"
+  type        = map(string)
+  default     = {}
+}
+
+variable "azdo_subnet_tags" {
+  description = "Additional tags for the database subnets"
+  type        = map(string)
+  default     = {}
+}
+
+variable "azdo_database_subnet_group" {
+  description = "Controls if database subnet group should be created (n.b. database_subnets must also be set)"
+  type        = bool
+  default     = true
+}
+
+variable "azdo_subnet_group_name" {
+  description = "Name of database subnet group"
+  type        = string
+  default     = null
+}
+
+variable "azdo_subnet_group_tags" {
+  description = "Additional tags for the database subnet group"
+  type        = map(string)
+  default     = {}
+}
+
+
+
+################################################################################
+# ALB Subnets
+################################################################################
+
+variable "alb_subnets" {
+  description = "A list of database subnets inside the VPC"
+  type        = list(string)
+  default     = []
+}
+
+variable "alb_subnet_assign_ipv6_address_on_creation" {
+  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
+  type        = bool
+  default     = false
+}
+
+variable "alb_subnet_enable_dns64" {
+  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
+  type        = bool
+  default     = true
+}
+
+variable "alb_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
+  type        = bool
+  default     = true
+}
+
+variable "alb_subnet_enable_resource_name_dns_a_record_on_launch" {
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
+  type        = bool
+  default     = false
+}
+
+variable "alb_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 database subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  type        = list(string)
+  default     = []
+}
+
+variable "alb_subnet_ipv6_native" {
+  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
+  type        = bool
+  default     = false
+}
+
+variable "alb_subnet_private_dns_hostname_type_on_launch" {
+  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
+  type        = string
+  default     = null
+}
+
+variable "alb_subnet_names" {
+  description = "Explicit values to use in the Name tag on database subnets. If empty, Name tags are generated"
+  type        = list(string)
+  default     = []
+}
+
+variable "alb_subnet_suffix" {
+  description = "Suffix to append to database subnets name"
+  type        = string
+  default     = "db"
+}
+
+variable "create_alb_subnet_route_table" {
+  description = "Controls if separate route table for database should be created"
+  type        = bool
+  default     = true
+}
+
+variable "create_alb_internet_gateway_route" {
+  description = "Controls if an internet gateway route for public database access should be created"
+  type        = bool
+  default     = false
+}
+
+variable "create_alb_nat_gateway_route" {
+  description = "Controls if a nat gateway route should be created to give internet access to the database subnets"
+  type        = bool
+  default     = false
+}
+
+variable "alb_route_table_tags" {
+  description = "Additional tags for the database route tables"
+  type        = map(string)
+  default     = {}
+}
+
+variable "alb_subnet_tags" {
+  description = "Additional tags for the database subnets"
+  type        = map(string)
+  default     = {}
+}
+
+variable "alb_database_subnet_group" {
+  description = "Controls if database subnet group should be created (n.b. database_subnets must also be set)"
+  type        = bool
+  default     = true
+}
+
+variable "alb_subnet_group_name" {
+  description = "Name of database subnet group"
+  type        = string
+  default     = null
+}
+
+variable "alb_subnet_group_tags" {
+  description = "Additional tags for the database subnet group"
+  type        = map(string)
+  default     = {}
+}
+
+variable "create_alb_subnets" {
+  description = "whether to create alb subnets or not"
+  type = bool
+  default = true
+}
+
+################################################################################
 # Database Subnets
 ################################################################################
 
@@ -491,7 +723,13 @@ variable "database_subnet_suffix" {
 variable "create_database_subnet_route_table" {
   description = "Controls if separate route table for database should be created"
   type        = bool
-  default     = false
+  default     = true
+}
+
+variable "create_database_subnets" {
+  description = "Controls if separate route table for database should be created"
+  type        = bool
+  default     = true
 }
 
 variable "create_database_internet_gateway_route" {
@@ -583,561 +821,130 @@ variable "database_acl_tags" {
 }
 
 ################################################################################
-# Redshift Subnets
+# Firewall Subnets
 ################################################################################
 
-variable "redshift_subnets" {
-  description = "A list of redshift subnets inside the VPC"
+variable "firewall_subnets" {
+  description = "A list of firewall subnets inside the VPC"
   type        = list(string)
   default     = []
 }
 
-variable "redshift_subnet_assign_ipv6_address_on_creation" {
+variable "firewall_subnet_assign_ipv6_address_on_creation" {
   description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
   type        = bool
   default     = false
 }
 
-variable "redshift_subnet_enable_dns64" {
+variable "firewall_subnet_enable_dns64" {
   description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
   type        = bool
   default     = true
 }
 
-variable "redshift_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
+variable "firewall_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
   description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
   type        = bool
   default     = true
 }
 
-variable "redshift_subnet_enable_resource_name_dns_a_record_on_launch" {
+variable "firewall_subnet_enable_resource_name_dns_a_record_on_launch" {
   description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
   type        = bool
   default     = false
 }
 
-variable "redshift_subnet_ipv6_prefixes" {
-  description = "Assigns IPv6 redshift subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+variable "firewall_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 firewall subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
   type        = list(string)
   default     = []
 }
 
-variable "redshift_subnet_ipv6_native" {
+variable "firewall_subnet_ipv6_native" {
   description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
   type        = bool
   default     = false
 }
 
-variable "redshift_subnet_private_dns_hostname_type_on_launch" {
+variable "firewall_subnet_private_dns_hostname_type_on_launch" {
   description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
   type        = string
   default     = null
 }
 
-variable "redshift_subnet_names" {
-  description = "Explicit values to use in the Name tag on redshift subnets. If empty, Name tags are generated"
+variable "firewall_subnet_names" {
+  description = "Explicit values to use in the Name tag on firewall subnets. If empty, Name tags are generated"
   type        = list(string)
   default     = []
 }
 
-variable "redshift_subnet_suffix" {
-  description = "Suffix to append to redshift subnets name"
+variable "firewall_subnet_suffix" {
+  description = "Suffix to append to firewall subnets name"
   type        = string
-  default     = "redshift"
+  default     = "db"
 }
 
-variable "enable_public_redshift" {
-  description = "Controls if redshift should have public routing table"
-  type        = bool
-  default     = false
-}
-
-variable "create_redshift_subnet_route_table" {
-  description = "Controls if separate route table for redshift should be created"
-  type        = bool
-  default     = false
-}
-
-variable "redshift_route_table_tags" {
-  description = "Additional tags for the redshift route tables"
-  type        = map(string)
-  default     = {}
-}
-
-variable "redshift_subnet_tags" {
-  description = "Additional tags for the redshift subnets"
-  type        = map(string)
-  default     = {}
-}
-
-variable "create_redshift_subnet_group" {
-  description = "Controls if redshift subnet group should be created"
+variable "create_firewall_subnet_route_table" {
+  description = "Controls if separate route table for firewall should be created"
   type        = bool
   default     = true
 }
 
-variable "redshift_subnet_group_name" {
-  description = "Name of redshift subnet group"
-  type        = string
-  default     = null
-}
-
-variable "redshift_subnet_group_tags" {
-  description = "Additional tags for the redshift subnet group"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Redshift Network ACLs
-################################################################################
-
-variable "redshift_dedicated_network_acl" {
-  description = "Whether to use dedicated network ACL (not default) and custom rules for redshift subnets"
-  type        = bool
-  default     = false
-}
-
-variable "redshift_inbound_acl_rules" {
-  description = "Redshift subnets inbound network ACL rules"
-  type        = list(any)
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-variable "redshift_outbound_acl_rules" {
-  description = "Redshift subnets outbound network ACL rules"
-  type        = list(any)
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-variable "redshift_acl_tags" {
-  description = "Additional tags for the redshift subnets network ACL"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Elasticache Subnets
-################################################################################
-
-variable "elasticache_subnets" {
-  description = "A list of elasticache subnets inside the VPC"
-  type        = list(string)
-  default     = []
-}
-
-variable "elasticache_subnet_assign_ipv6_address_on_creation" {
-  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
-  type        = bool
-  default     = false
-}
-
-variable "elasticache_subnet_enable_dns64" {
-  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
+variable "create_firewall_subnets" {
+  description = "Controls if separate route table for firewall should be created"
   type        = bool
   default     = true
 }
 
-variable "elasticache_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
+variable "create_public_subnet_route_table" {
+  description = "Controls if separate route table for firewall should be created"
   type        = bool
   default     = true
 }
 
-variable "elasticache_subnet_enable_resource_name_dns_a_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
+variable "create_private_subnet_route_table" {
+  type = bool
+  default = true
+}
+
+variable "create_firewall_internet_gateway_route" {
+  description = "Controls if an internet gateway route for public firewall access should be created"
   type        = bool
   default     = false
 }
 
-variable "elasticache_subnet_ipv6_prefixes" {
-  description = "Assigns IPv6 elasticache subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
-  type        = list(string)
-  default     = []
-}
-
-variable "elasticache_subnet_ipv6_native" {
-  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
+variable "create_firewall_nat_gateway_route" {
+  description = "Controls if a nat gateway route should be created to give internet access to the firewall subnets"
   type        = bool
   default     = false
 }
 
-variable "elasticache_subnet_private_dns_hostname_type_on_launch" {
-  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
-  type        = string
-  default     = null
-}
-
-variable "elasticache_subnet_names" {
-  description = "Explicit values to use in the Name tag on elasticache subnets. If empty, Name tags are generated"
-  type        = list(string)
-  default     = []
-}
-
-variable "elasticache_subnet_suffix" {
-  description = "Suffix to append to elasticache subnets name"
-  type        = string
-  default     = "elasticache"
-}
-
-variable "elasticache_subnet_tags" {
-  description = "Additional tags for the elasticache subnets"
+variable "firewall_route_table_tags" {
+  description = "Additional tags for the firewall route tables"
   type        = map(string)
   default     = {}
 }
 
-variable "create_elasticache_subnet_route_table" {
-  description = "Controls if separate route table for elasticache should be created"
-  type        = bool
-  default     = false
-}
-
-variable "elasticache_route_table_tags" {
-  description = "Additional tags for the elasticache route tables"
+variable "firewall_subnet_tags" {
+  description = "Additional tags for the firewall subnets"
   type        = map(string)
   default     = {}
 }
 
-variable "create_elasticache_subnet_group" {
-  description = "Controls if elasticache subnet group should be created"
+variable "create_firewall_subnet_group" {
+  description = "Controls if firewall subnet group should be created (n.b. firewall_subnets must also be set)"
   type        = bool
   default     = true
 }
 
-variable "elasticache_subnet_group_name" {
-  description = "Name of elasticache subnet group"
+variable "firewall_subnet_group_name" {
+  description = "Name of firewall subnet group"
   type        = string
   default     = null
 }
 
-variable "elasticache_subnet_group_tags" {
-  description = "Additional tags for the elasticache subnet group"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Elasticache Network ACLs
-################################################################################
-
-variable "elasticache_dedicated_network_acl" {
-  description = "Whether to use dedicated network ACL (not default) and custom rules for elasticache subnets"
-  type        = bool
-  default     = false
-}
-
-variable "elasticache_inbound_acl_rules" {
-  description = "Elasticache subnets inbound network ACL rules"
-  type        = list(any)
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-variable "elasticache_outbound_acl_rules" {
-  description = "Elasticache subnets outbound network ACL rules"
-  type        = list(any)
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-variable "elasticache_acl_tags" {
-  description = "Additional tags for the elasticache subnets network ACL"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Intra Subnets
-################################################################################
-
-variable "intra_subnets" {
-  description = "A list of intra subnets inside the VPC"
-  type        = list(string)
-  default     = []
-}
-
-variable "intra_subnet_assign_ipv6_address_on_creation" {
-  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
-  type        = bool
-  default     = false
-}
-
-variable "intra_subnet_enable_dns64" {
-  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
-  type        = bool
-  default     = true
-}
-
-variable "intra_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
-  type        = bool
-  default     = true
-}
-
-variable "intra_subnet_enable_resource_name_dns_a_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
-  type        = bool
-  default     = false
-}
-
-variable "intra_subnet_ipv6_prefixes" {
-  description = "Assigns IPv6 intra subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
-  type        = list(string)
-  default     = []
-}
-
-variable "intra_subnet_ipv6_native" {
-  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
-  type        = bool
-  default     = false
-}
-
-variable "intra_subnet_private_dns_hostname_type_on_launch" {
-  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
-  type        = string
-  default     = null
-}
-
-variable "intra_subnet_names" {
-  description = "Explicit values to use in the Name tag on intra subnets. If empty, Name tags are generated"
-  type        = list(string)
-  default     = []
-}
-
-variable "intra_subnet_suffix" {
-  description = "Suffix to append to intra subnets name"
-  type        = string
-  default     = "intra"
-}
-
-variable "intra_subnet_tags" {
-  description = "Additional tags for the intra subnets"
-  type        = map(string)
-  default     = {}
-}
-
-variable "intra_route_table_tags" {
-  description = "Additional tags for the intra route tables"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Intra Network ACLs
-################################################################################
-
-variable "intra_dedicated_network_acl" {
-  description = "Whether to use dedicated network ACL (not default) and custom rules for intra subnets"
-  type        = bool
-  default     = false
-}
-
-variable "intra_inbound_acl_rules" {
-  description = "Intra subnets inbound network ACLs"
-  type        = list(any)
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-variable "intra_outbound_acl_rules" {
-  description = "Intra subnets outbound network ACLs"
-  type        = list(any)
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-variable "intra_acl_tags" {
-  description = "Additional tags for the intra subnets network ACL"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Outpost Subnets
-################################################################################
-
-variable "outpost_subnets" {
-  description = "A list of outpost subnets inside the VPC"
-  type        = list(string)
-  default     = []
-}
-
-variable "outpost_subnet_assign_ipv6_address_on_creation" {
-  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
-  type        = bool
-  default     = false
-}
-
-variable "outpost_az" {
-  description = "AZ where Outpost is anchored"
-  type        = string
-  default     = null
-}
-
-variable "customer_owned_ipv4_pool" {
-  description = "The customer owned IPv4 address pool. Typically used with the `map_customer_owned_ip_on_launch` argument. The `outpost_arn` argument must be specified when configured"
-  type        = string
-  default     = null
-}
-
-variable "outpost_subnet_enable_dns64" {
-  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
-  type        = bool
-  default     = true
-}
-
-variable "outpost_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
-  type        = bool
-  default     = true
-}
-
-variable "outpost_subnet_enable_resource_name_dns_a_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
-  type        = bool
-  default     = false
-}
-
-variable "outpost_subnet_ipv6_prefixes" {
-  description = "Assigns IPv6 outpost subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
-  type        = list(string)
-  default     = []
-}
-
-variable "outpost_subnet_ipv6_native" {
-  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
-  type        = bool
-  default     = false
-}
-
-variable "map_customer_owned_ip_on_launch" {
-  description = "Specify true to indicate that network interfaces created in the subnet should be assigned a customer owned IP address. The `customer_owned_ipv4_pool` and `outpost_arn` arguments must be specified when set to `true`. Default is `false`"
-  type        = bool
-  default     = false
-}
-
-variable "outpost_arn" {
-  description = "ARN of Outpost you want to create a subnet in"
-  type        = string
-  default     = null
-}
-
-variable "outpost_subnet_private_dns_hostname_type_on_launch" {
-  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
-  type        = string
-  default     = null
-}
-
-variable "outpost_subnet_names" {
-  description = "Explicit values to use in the Name tag on outpost subnets. If empty, Name tags are generated"
-  type        = list(string)
-  default     = []
-}
-
-variable "outpost_subnet_suffix" {
-  description = "Suffix to append to outpost subnets name"
-  type        = string
-  default     = "outpost"
-}
-
-variable "outpost_subnet_tags" {
-  description = "Additional tags for the outpost subnets"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Outpost Network ACLs
-################################################################################
-
-variable "outpost_dedicated_network_acl" {
-  description = "Whether to use dedicated network ACL (not default) and custom rules for outpost subnets"
-  type        = bool
-  default     = false
-}
-
-variable "outpost_inbound_acl_rules" {
-  description = "Outpost subnets inbound network ACLs"
-  type        = list(any)
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-variable "outpost_outbound_acl_rules" {
-  description = "Outpost subnets outbound network ACLs"
-  type        = list(any)
-  default = [
-    {
-      rule_number = 100
-      rule_action = "allow"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_block  = "0.0.0.0/0"
-    },
-  ]
-}
-
-variable "outpost_acl_tags" {
-  description = "Additional tags for the outpost subnets network ACL"
+variable "firewall_subnet_group_tags" {
+  description = "Additional tags for the firewall subnet group"
   type        = map(string)
   default     = {}
 }
@@ -1155,7 +962,7 @@ variable "create_igw" {
 variable "create_egress_only_igw" {
   description = "Controls if an Egress Only Internet Gateway is created and its related routes"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "igw_tags" {
@@ -1584,4 +1391,46 @@ variable "vpn_connections" {
 variable "aws_vpn_connection_routes" {
   type = map(any)
   default = {}
+}
+
+################################################################################
+# Route Tables
+################################################################################
+variable "create_ingress_route_table" {
+  type = bool
+  default = true
+}
+
+variable "create_protected_route_table" {
+  type = bool
+  default = true
+}
+
+variable "firewall_routes" {
+  type = list(object({
+    destination_cidr_block = string
+  }))
+}
+
+variable "ingress_igw_routes" {
+  type = list(object({
+    endpoint_id = string
+    destination_cidr_block = string
+  }))
+}
+
+variable "protected_routes" {
+  type = list(object({
+    destination_cidr_block = string
+    endpoint_id = optional(string)
+    gateway_id = optional(string)
+  }))
+}
+
+variable "private_routes" {
+  type = list(object({
+    destination_cidr_block = string
+    endpoint_id = optional(string)
+    gateway_id = optional(string)
+  }))
 }
