@@ -1406,17 +1406,15 @@ variable "create_protected_route_table" {
   default = true
 }
 
+variable "create_db_subnet_route_table" {
+  type = bool
+  default = true
+}
+
 variable "firewall_routes" {
   type = list(object({
     destination_cidr_block = string
     gateway_id = optional(string)
-  }))
-}
-
-variable "ingress_igw_routes" {
-  type = list(object({
-    endpoint_id = string
-    destination_cidr_block = string
   }))
 }
 
@@ -1431,7 +1429,13 @@ variable "protected_routes" {
 variable "private_routes" {
   type = list(object({
     destination_cidr_block = string
-    endpoint_id = optional(string)
+    gateway_id = optional(string)
+  }))
+}
+
+variable "db_routes" {
+  type = list(object({
+    destination_cidr_block = string
     gateway_id = optional(string)
   }))
 }

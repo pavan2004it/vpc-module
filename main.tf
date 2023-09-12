@@ -123,6 +123,15 @@ resource "aws_subnet" "public" {
   )
 }
 
+resource "aws_route_table_association" "protected-association" {
+  count = local.create_alb_subnets ? local.len_alb_subnets : 0
+  subnet_id = element(aws_subnet.public[*].id, count.index)
+  route_table_id = element(
+    coalescelist(aws_route_table.protected_route_table[*].id),
+    var.create_protected_route_table ? 1: 0,
+  )
+}
+
 
 ################################################################################
 # Public Network ACLs
@@ -209,6 +218,35 @@ resource "aws_subnet" "private" {
     var.private_subnet_tags,
     lookup(var.private_subnet_tags_per_az, element(var.azs, count.index), {})
   )
+}
+
+resource "aws_route_table" "private_route_table" {
+  count = var.create_private_subnet_route_table ? 1 : 0
+
+  vpc_id = local.vpc_id
+
+  tags = {
+    "Name" = "Private-RT"
+  }
+}
+
+resource "aws_route_table_association" "private-association" {
+  count = local.create_alb_subnets ? local.len_alb_subnets : 0
+  subnet_id      = element(aws_subnet.private[*].id, count.index)
+  route_table_id = element(
+    coalescelist(aws_route_table.private_route_table[*].id),
+    var.create_protected_route_table ? 1: 0,
+  )
+}
+
+resource "aws_route" "private_route" {
+  count = length(var.private_routes)
+  route_table_id = element(
+    coalescelist(aws_route_table.private_route_table[*].id),
+    var.create_private_subnet_route_table ? 1: 0,
+  )
+  destination_cidr_block = element(aws_subnet.private[*].cidr_block, count.index)
+  gateway_id = aws_vpn_gateway.this.id
 }
 
 ################################################################################
@@ -339,6 +377,36 @@ resource "aws_subnet" "alb" {
   )
 }
 
+resource "aws_route_table" "protected_route_table" {
+  count = var.create_protected_route_table ? 1 : 0
+
+  vpc_id = local.vpc_id
+
+  tags = {
+    "Name" = "Protected-RT"
+  }
+}
+
+resource "aws_route_table_association" "protected-association" {
+  count = local.create_alb_subnets ? local.len_alb_subnets : 0
+  subnet_id = element(aws_subnet.alb[*].id, count.index)
+  route_table_id = element(
+    coalescelist(aws_route_table.protected_route_table[*].id),
+    var.create_protected_route_table ? 1: 0,
+  )
+}
+
+resource "aws_route" "protected_route" {
+  count = length(var.firewall_routes)
+  route_table_id = element(
+    coalescelist(aws_route_table.protected_route_table[*].id),
+    var.create_protected_route_table ? 1: 0,
+  )
+  destination_cidr_block = var.protected_routes[count.index].destination_cidr_block
+  vpc_endpoint_id = var.protected_routes[count.index].endpoint_id
+  gateway_id = var.protected_routes[count.index].gateway_id
+}
+
 ################################################################################
 # firewall Subnets
 ################################################################################
@@ -374,6 +442,31 @@ resource "aws_subnet" "firewall" {
     var.tags,
     var.firewall_subnet_tags,
   )
+}
+
+resource "aws_route_table" "firewall_route_table" {
+  count = local.create_firewall_route_table  ? 1 : 0
+  vpc_id = local.vpc_id
+  tags = {
+    "Name" = "Firewall-RT"
+  }
+}
+
+resource "aws_route_table_association" "firewall-association" {
+  count = local.create_firewall_subnets ? local.len_firewall_subnets : 0
+
+  subnet_id = element(aws_subnet.firewall[*].id, count.index)
+  route_table_id = element(
+    coalescelist(aws_route_table.firewall_route_table[*].id),
+    var.create_firewall_subnet_route_table ? 1: 0,
+  )
+}
+
+resource "aws_route" "firewall_route" {
+  count = length(var.firewall_routes)
+  route_table_id = aws_route_table.firewall_route_table[*].id
+  destination_cidr_block = var.firewall_routes[count.index].destination_cidr_block
+  gateway_id = aws_internet_gateway.this[0].id
 }
 
 ################################################################################
@@ -426,6 +519,35 @@ resource "aws_db_subnet_group" "database" {
     var.tags,
     var.database_subnet_group_tags,
   )
+}
+
+resource "aws_route_table" "db_route_table" {
+  count = var.create_db_subnet_route_table ? 1 : 0
+
+  vpc_id = local.vpc_id
+
+  tags = {
+    "Name" = "DB-RT"
+  }
+}
+
+resource "aws_route_table_association" "db-association" {
+  count = local.create_alb_subnets ? local.len_alb_subnets : 0
+  subnet_id      = element(aws_subnet.database[*].id, count.index)
+  route_table_id = element(
+    coalescelist(aws_route_table.db_route_table[*].id),
+    var.create_protected_route_table ? 1: 0,
+  )
+}
+
+resource "aws_route" "db_route" {
+  count = length(var.db_routes)
+  route_table_id = element(
+    coalescelist(aws_route_table.db_route_table[*].id),
+    var.create_database_subnet_route_table ? 1: 0,
+  )
+  destination_cidr_block = element(aws_subnet.database[*].cidr_block, count.index)
+  gateway_id = aws_vpn_gateway.this.id
 }
 
 ################################################################################
@@ -490,7 +612,7 @@ resource "aws_network_acl_rule" "database_outbound" {
 resource "aws_networkfirewall_firewall" "rp-firewall" {
   name                = "rp-firewall"
   firewall_policy_arn = aws_networkfirewall_firewall_policy.default.arn
-  vpc_id              = aws_vpc.this.id
+  vpc_id              = aws_vpc.this[0].id
 
   subnet_mapping {
     subnet_id = aws_subnet.firewall.id
@@ -540,53 +662,24 @@ resource "aws_networkfirewall_rule_group" "azdo_rule_group" {
 # Route Tables
 ################################################################################
 
-data "aws_networkfirewall_firewall" "firewall" {
-  name = aws_networkfirewall_firewall.rp-firewall.name
-}
-
-
 locals {
-  description = "Gateway Load Balancer Endpoint ID for Network Firewall"
-  gwy_alb_id       = [for i in data.aws_networkfirewall_firewall.firewall.firewall_status[0].sync_states: i.attachment[0].endpoint_id][0]
-}
-
-locals {
-  protected_subnet_ids = concat(
-    aws_subnet.alb.*.id,
-    aws_subnet.public.*.id
-  )
-}
-
-locals {
-  private_subnet_ids = concat(
-    aws_subnet.private.*.id,
-    aws_subnet.database.*.id,
-  )
-}
-
-resource "aws_route_table" "firewall_route_table" {
-  count = local.create_firewall_route_table  ? 1 : 0
-  vpc_id = local.vpc_id
-  tags = {
-    "Name" = "Firewall-RT"
-  }
-}
-
-resource "aws_route_table_association" "firewall-association" {
-  count = local.create_firewall_subnets ? local.len_firewall_subnets : 0
-
-  subnet_id = element(aws_subnet.firewall[*].id, count.index)
-  route_table_id = element(
-    coalescelist(aws_route_table.firewall_route_table[*].id),
-    var.create_firewall_subnet_route_table ? 1: 0,
-  )
-}
-
-resource "aws_route" "firewall_route" {
-  for_each = var.firewall_routes
-  route_table_id = aws_route_table.firewall_route_table.id
-  destination_cidr_block = each.value.destination_cidr_block
-  gateway_id = aws_internet_gateway.this.id
+  alb_subnets = aws_subnet.alb[*].cidr_block
+  public_subnets = aws_subnet.public[*].cidr_block
+  azdo_subnets = aws_subnet.azdo[*].cidr_block
+  alb_routes = [for subnet in alb_subnets : {
+    endpoint_id            = aws_networkfirewall_firewall.rp-firewall.firewall_status[0].sync_states.attachment[0].endpoint_id,
+    destination_cidr_block = subnet
+  }]
+  public_routes = [for subnet in public_subnets : {
+    endpoint_id            = aws_networkfirewall_firewall.rp-firewall.firewall_status[0].sync_states.attachment[0].endpoint_id,
+    destination_cidr_block = subnet
+  }]
+  azdo_routes = [
+    for subnet in azdo_subnets : {
+      endpoint_id            = aws_networkfirewall_firewall.rp-firewall.firewall_status[0].sync_states.attachment[0].endpoint_id,
+      destination_cidr_block = subnet
+    }]
+  combined_routes = concat(local.alb_routes, local.public_routes, local.azdo_routes)
 }
 
 resource "aws_route_table" "ingress_igw_route_table" {
@@ -603,78 +696,22 @@ resource "aws_route_table_association" "ingress-igw-association" {
     coalescelist(aws_route_table.ingress_igw_route_table[*].id),
     var.create_alb_subnet_route_table ? 1: 0,
   )
-  gateway_id = aws_internet_gateway.this.id
+  gateway_id = aws_internet_gateway.this[*].id
 }
 
 resource "aws_route" "ingress-igw-route" {
-  for_each = var.ingress_igw_routes
+  count = length(local.combined_routes)
   route_table_id = element(
     coalescelist(aws_route_table.ingress_igw_route_table[*].id),
     var.create_ingress_route_table ? 1: 0,
   )
-  destination_cidr_block = each.value.destination_cidr_block
-  vpc_endpoint_id = each.value.endpoint_id
+  destination_cidr_block = local.combined_routes[count.index].destination_cidr_block
+  vpc_endpoint_id = local.combined_routes[count.index].endpoint_id
 }
 
-resource "aws_route_table" "protected_route_table" {
-  count = var.create_protected_route_table ? 1 : 0
 
-  vpc_id = local.vpc_id
 
-  tags = {
-    "Name" = "Protected-RT"
-  }
-}
 
-resource "aws_route_table_association" "protected-association" {
-  count = local.create_alb_subnets ? local.len_alb_subnets : 0
-  subnet_id = local.protected_subnet_ids[count.index]
-  route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
-  )
-}
-
-resource "aws_route" "protected_route" {
-  for_each = var.protected_routes
-  route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
-  )
-  destination_cidr_block = each.value.destination_cidr_block
-  vpc_endpoint_id = lookup(each.value, "endpoint_id", null)
-  gateway_id = lookup(each.value,"gateway_id", null)
-}
-
-resource "aws_route_table" "private_route_table" {
-  count = var.create_private_subnet_route_table ? 1 : 0
-
-  vpc_id = local.vpc_id
-
-  tags = {
-    "Name" = "Private-RT"
-  }
-}
-
-resource "aws_route_table_association" "private-association" {
-  count = local.create_alb_subnets ? local.len_alb_subnets : 0
-  subnet_id = local.private_subnet_ids[count.index]
-  route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
-  )
-}
-
-resource "aws_route" "private_route" {
-  for_each = var.private_routes
-  route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_private_subnet_route_table ? 1: 0,
-  )
-  destination_cidr_block = each.value.destination_cidr_block
-  vpc_endpoint_id = lookup(each.value, "endpoint_id", null)
-  gateway_id = lookup(each.value,"gateway_id", null)
-}
 
 
 
