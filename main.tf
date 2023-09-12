@@ -26,9 +26,7 @@ locals {
 ################################################################################
 
 resource "aws_vpc" "this" {
-  depends_on = [aws_networkfirewall_firewall.rp-firewall]
   count = local.create_vpc ? 1 : 0
-
   cidr_block          = var.use_ipam_pool ? null : var.vpc_cidr
   ipv4_ipam_pool_id   = var.ipv4_ipam_pool_id
   ipv4_netmask_length = var.ipv4_netmask_length
@@ -232,7 +230,7 @@ resource "aws_route_table" "private_route_table" {
 }
 
 resource "aws_route_table_association" "private-association" {
-  count = local.create_alb_subnets ? local.len_alb_subnets : 0
+  count = local.create_private_subnets ? local.len_private_subnets : 0
   subnet_id      = element(aws_subnet.private[*].id, count.index)
   route_table_id = element(
     coalescelist(aws_route_table.private_route_table[*].id),
@@ -341,6 +339,15 @@ resource "aws_subnet" "azdo" {
   )
 }
 
+resource "aws_route_table_association" "azdo-association" {
+  count = local.create_azdo_subnets ? local.len_azdo_subnets : 0
+  subnet_id = element(aws_subnet.azdo[*].id, count.index)
+  route_table_id = element(
+    coalescelist(aws_route_table.protected_route_table[*].id),
+    var.create_protected_route_table ? 1: 0,
+  )
+}
+
 ################################################################################
 # ALB Subnets
 ################################################################################
@@ -352,8 +359,8 @@ locals {
 }
 
 resource "aws_subnet" "alb" {
-  count = var.create_alb_subnets ? local.len_alb_subnets : 0
 
+  count = var.create_alb_subnets ? local.len_alb_subnets : 0
   assign_ipv6_address_on_creation                = var.enable_ipv6 && var.alb_subnet_ipv6_native ? true : var.alb_subnet_assign_ipv6_address_on_creation
   availability_zone                              = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) > 0 ? element(var.azs, count.index) : null
   availability_zone_id                           = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
@@ -379,6 +386,7 @@ resource "aws_subnet" "alb" {
 }
 
 resource "aws_route_table" "protected_route_table" {
+  depends_on = [aws_subnet.alb, aws_subnet.azdo, aws_subnet.public,aws_networkfirewall_firewall.rp-firewall, aws_vpn_gateway.this]
   count = var.create_protected_route_table ? 1 : 0
 
   vpc_id = local.vpc_id
@@ -666,6 +674,7 @@ resource "aws_networkfirewall_firewall_policy" "default" {
 
 
 resource "aws_route_table" "ingress_igw_route_table" {
+  depends_on = [aws_subnet.alb, aws_subnet.azdo, aws_subnet.public,aws_networkfirewall_firewall.rp-firewall]
   count  = var.create_ingress_route_table ?  1 : 0
   vpc_id = local.vpc_id
   tags   = {
@@ -683,7 +692,6 @@ resource "aws_route_table_association" "ingress-igw-association" {
 }
 
 resource "aws_route" "ingress-igw-route" {
-  depends_on = [aws_subnet.alb, aws_subnet.azdo, aws_subnet.public]
   count = length(var.ingress_igw_routes)
   route_table_id = element(
     coalescelist(aws_route_table.ingress_igw_route_table[*].id),
