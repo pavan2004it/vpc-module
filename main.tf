@@ -123,8 +123,8 @@ resource "aws_subnet" "public" {
   )
 }
 
-resource "aws_route_table_association" "protected-association" {
-  count = local.create_alb_subnets ? local.len_alb_subnets : 0
+resource "aws_route_table_association" "public-association" {
+  count = local.create_public_subnets ? local.len_public_subnets : 0
   subnet_id = element(aws_subnet.public[*].id, count.index)
   route_table_id = element(
     coalescelist(aws_route_table.protected_route_table[*].id),
