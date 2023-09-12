@@ -464,7 +464,7 @@ resource "aws_route_table_association" "firewall-association" {
 
 resource "aws_route" "firewall_route" {
   count = length(var.firewall_routes)
-  route_table_id = aws_route_table.firewall_route_table[*].id
+  route_table_id = aws_route_table.firewall_route_table[0].id
   destination_cidr_block = var.firewall_routes[count.index].destination_cidr_block
   gateway_id = aws_internet_gateway.this[0].id
 }
@@ -678,7 +678,7 @@ resource "aws_route_table_association" "ingress-igw-association" {
     coalescelist(aws_route_table.ingress_igw_route_table[*].id),
     var.create_alb_subnet_route_table ? 1: 0,
   )
-  gateway_id = aws_internet_gateway.this[*].id
+  gateway_id = aws_internet_gateway.this[0].id
 }
 
 resource "aws_route" "ingress-igw-route" {
