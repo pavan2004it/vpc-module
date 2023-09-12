@@ -246,7 +246,7 @@ resource "aws_route" "private_route" {
     var.create_private_subnet_route_table ? 1: 0,
   )
   destination_cidr_block = element(aws_subnet.private[*].cidr_block, count.index)
-  gateway_id = aws_vpn_gateway.this.id
+  gateway_id = aws_vpn_gateway.this[0].id
 }
 
 ################################################################################
@@ -547,7 +547,7 @@ resource "aws_route" "db_route" {
     var.create_database_subnet_route_table ? 1: 0,
   )
   destination_cidr_block = element(aws_subnet.database[*].cidr_block, count.index)
-  gateway_id = aws_vpn_gateway.this.id
+  gateway_id = aws_vpn_gateway.this[0].id
 }
 
 ################################################################################
