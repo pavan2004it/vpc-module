@@ -26,6 +26,7 @@ locals {
 ################################################################################
 
 resource "aws_vpc" "this" {
+  depends_on = [aws_networkfirewall_firewall.rp-firewall]
   count = local.create_vpc ? 1 : 0
 
   cidr_block          = var.use_ipam_pool ? null : var.vpc_cidr
