@@ -683,6 +683,7 @@ resource "aws_route_table_association" "ingress-igw-association" {
 }
 
 resource "aws_route" "ingress-igw-route" {
+  depends_on = [aws_subnet.alb, aws_subnet.azdo, aws_subnet.public]
   count = length(var.ingress_igw_routes)
   route_table_id = element(
     coalescelist(aws_route_table.ingress_igw_route_table[*].id),
