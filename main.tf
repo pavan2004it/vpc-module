@@ -386,7 +386,7 @@ resource "aws_subnet" "alb" {
 }
 
 resource "aws_route_table" "protected_route_table" {
-  depends_on = [aws_subnet.alb, aws_subnet.azdo, aws_subnet.public,aws_networkfirewall_firewall.rp-firewall, aws_vpn_gateway.this]
+  depends_on = [aws_networkfirewall_firewall.rp-firewall, aws_vpn_gateway.this]
   count = var.create_protected_route_table ? 1 : 0
 
   vpc_id = local.vpc_id
@@ -406,7 +406,7 @@ resource "aws_route_table_association" "protected-association" {
 }
 
 resource "aws_route" "protected_route" {
-  count = length(var.firewall_routes)
+  count = length(var.protected_routes)
   route_table_id = element(
     coalescelist(aws_route_table.protected_route_table[*].id),
     var.create_protected_route_table ? 1: 0,
