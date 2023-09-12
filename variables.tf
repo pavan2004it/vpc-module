@@ -1418,6 +1418,13 @@ variable "firewall_routes" {
   }))
 }
 
+variable "ingress_igw_routes" {
+  type = list(object({
+    endpoint_id = string
+    destination_cidr_block = string
+  }))
+}
+
 variable "protected_routes" {
   type = list(object({
     destination_cidr_block = string

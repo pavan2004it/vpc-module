@@ -615,7 +615,7 @@ resource "aws_networkfirewall_firewall" "rp-firewall" {
   vpc_id              = aws_vpc.this[0].id
 
   subnet_mapping {
-    subnet_id = aws_subnet.firewall.id
+    subnet_id = aws_subnet.firewall[0].id
   }
 }
 
@@ -662,25 +662,7 @@ resource "aws_networkfirewall_firewall_policy" "default" {
 # Route Tables
 ################################################################################
 
-locals {
-  alb_subnets = aws_subnet.alb[*].cidr_block
-  public_subnets = aws_subnet.public[*].cidr_block
-  azdo_subnets = aws_subnet.azdo[*].cidr_block
-  alb_routes = [for subnet in alb_subnets : {
-    endpoint_id            = aws_networkfirewall_firewall.rp-firewall.firewall_status[0].sync_states.attachment[0].endpoint_id,
-    destination_cidr_block = subnet
-  }]
-  public_routes = [for subnet in public_subnets : {
-    endpoint_id            = aws_networkfirewall_firewall.rp-firewall.firewall_status[0].sync_states.attachment[0].endpoint_id,
-    destination_cidr_block = subnet
-  }]
-  azdo_routes = [
-    for subnet in azdo_subnets : {
-      endpoint_id            = aws_networkfirewall_firewall.rp-firewall.firewall_status[0].sync_states.attachment[0].endpoint_id,
-      destination_cidr_block = subnet
-    }]
-  combined_routes = concat(local.alb_routes, local.public_routes, local.azdo_routes)
-}
+
 
 resource "aws_route_table" "ingress_igw_route_table" {
   count  = var.create_ingress_route_table ?  1 : 0
@@ -700,13 +682,13 @@ resource "aws_route_table_association" "ingress-igw-association" {
 }
 
 resource "aws_route" "ingress-igw-route" {
-  count = length(local.combined_routes)
+  count = length(var.ingress_igw_routes)
   route_table_id = element(
     coalescelist(aws_route_table.ingress_igw_route_table[*].id),
     var.create_ingress_route_table ? 1: 0,
   )
-  destination_cidr_block = local.combined_routes[count.index].destination_cidr_block
-  vpc_endpoint_id = local.combined_routes[count.index].endpoint_id
+  destination_cidr_block = var.ingress_igw_routes[count.index].destination_cidr_block
+  vpc_endpoint_id = var.ingress_igw_routes[count.index].endpoint_id
 }
 
 
