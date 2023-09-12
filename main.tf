@@ -244,8 +244,8 @@ resource "aws_route" "private_route" {
     coalescelist(aws_route_table.private_route_table[*].id),
     var.create_private_subnet_route_table ? 1: 0,
   )
-  destination_cidr_block = element(aws_subnet.private[*].cidr_block, count.index)
-  gateway_id = aws_vpn_gateway.this[0].id
+  destination_cidr_block = var.private_routes[count.index].destination_cidr_block
+  gateway_id = var.private_routes[count.index].gateway_id
 }
 
 ################################################################################
@@ -555,8 +555,8 @@ resource "aws_route" "db_route" {
     coalescelist(aws_route_table.db_route_table[*].id),
     var.create_database_subnet_route_table ? 1: 0,
   )
-  destination_cidr_block = element(aws_subnet.database[*].cidr_block, count.index)
-  gateway_id = aws_vpn_gateway.this[0].id
+  destination_cidr_block = var.db_routes[count.index].destination_cidr_block
+  gateway_id = var.db_routes[count.index].gateway_id
 }
 
 ################################################################################

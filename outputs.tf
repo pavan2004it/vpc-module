@@ -199,7 +199,7 @@ output "this_customer_gateway" {
 
 output "vgw_id" {
   description = "The ID of the VPN Gateway"
-  value       = try(aws_vpn_gateway.this[0].id, aws_vpn_gateway_attachment.this[0].vpn_gateway_id, null)
+  value       = try(aws_vpn_gateway.this[0].id, null)
 }
 
 output "vgw_arn" {
