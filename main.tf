@@ -625,31 +625,31 @@ resource "aws_networkfirewall_firewall_policy" "default" {
   firewall_policy {
     stateless_default_actions = ["aws:pass"]
     stateless_fragment_default_actions = ["aws:pass"]
-    stateful_rule_group_reference {
-      resource_arn = aws_networkfirewall_rule_group.azdo_rule_group.arn
-    }
+#    stateful_rule_group_reference {
+#      resource_arn = aws_networkfirewall_rule_group.azdo_rule_group.arn
+#    }
   }
 }
 
-resource "aws_networkfirewall_rule_group" "azdo_rule_group" {
-  capacity = 100
-  name     = "azdo-rule-group"
-  type     = "STATELESS"
-  rule_group {
-    rule_variables {
-      ip_sets {
-        key   = "azdo_ip_set"
-        value = ["0.0.0.0/0"]
-      }
-    }
-    rules_source {
-      rules_string = <<-EOT
-        pass tcp from addrset(azdo_ip_set) to any port 443
-        drop {}
-      EOT
-    }
-  }
-}
+#resource "aws_networkfirewall_rule_group" "azdo_rule_group" {
+#  capacity = 100
+#  name     = "azdo-rule-group"
+#  type     = "STATELESS"
+#  rule_group {
+#    rule_variables {
+#      ip_sets {
+#        key   = "azdo_ip_set"
+#        value = ["0.0.0.0/0"]
+#      }
+#    }
+#    rules_source {
+#      rules_string = <<-EOT
+#        pass tcp from addrset(azdo_ip_set) to any port 443
+#        drop {}
+#      EOT
+#    }
+#  }
+#}
 
 # Ensure you associate this rule group with a firewall policy and the firewall.
 
