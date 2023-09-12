@@ -687,11 +687,9 @@ resource "aws_internet_gateway" "this" {
 
   vpc_id = local.vpc_id
 
-  tags = merge(
-    { "Name" = var.name },
-    var.tags,
-    var.igw_tags,
-  )
+  tags = {
+    "Name" = "RP-IGW-NF"
+  }
 }
 
 ################################################################################
