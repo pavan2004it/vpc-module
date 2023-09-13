@@ -674,7 +674,6 @@ resource "aws_networkfirewall_firewall_policy" "default" {
 
 
 resource "aws_route_table" "ingress_igw_route_table" {
-  depends_on = [aws_subnet.alb, aws_subnet.azdo, aws_subnet.public,aws_networkfirewall_firewall.rp-firewall]
   count  = var.create_ingress_route_table ?  1 : 0
   vpc_id = local.vpc_id
   tags   = {
