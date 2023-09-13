@@ -1052,7 +1052,7 @@ variable "customer_gateway_tags" {
 variable "enable_vpn_gateway" {
   description = "Should be true if you want to create a new VPN Gateway resource and attach it to the VPC"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "vpn_gateway_id" {
