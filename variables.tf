@@ -1437,6 +1437,7 @@ variable "private_routes" {
   type = list(object({
     destination_cidr_block = string
     gateway_id = optional(string)
+    endpoint_id = optional(string)
   }))
 }
 
@@ -1444,5 +1445,6 @@ variable "db_routes" {
   type = list(object({
     destination_cidr_block = string
     gateway_id = optional(string)
+    endpoint_id = optional(string)
   }))
 }
