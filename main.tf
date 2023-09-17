@@ -646,43 +646,35 @@ resource "aws_networkfirewall_rule_group" "rp_rule_group" {
   capacity = var.rule_group_capacity
   name     = var.rule_group_name
   type     = var.rule_group_type
-  dynamic "rule_group" {
-    for_each = var.stateful_rule_group
-    content {
-      dynamic "rule_variables"{
-        for_each = try([rule_group.value.rule_variables], [])
-        content {
-          dynamic "ip_sets" {
-            for_each = try(rule_variables.value.ip_sets, [])
-            content {
-              key = ip_sets.value.key
-              dynamic "ip_set" {
-                for_each = [ip_sets.value.ip_set]
-                content {
-                  definition = ip_set.value.definition
-                }
-              }
+  rule_group {
+    dynamic "rule_variables" {
+      for_each = [var.rp_rule_group.rule_variables]
+      content {
+        dynamic "ip_sets"{
+          for_each = rule_variables.value.ip_sets
+          content {
+            key = ip_sets.key
+            ip_set {
+              definition = [ip_sets.value.definition]
             }
           }
-          dynamic "port_sets" {
-            for_each = try(rule_variables.value.port_sets, [])
-            content {
-              key = port_sets.value.key
-              dynamic "port_set" {
-                for_each = [port_sets.value.port_set]
-                content {
-                  definition = port_set.value.definition
-                }
-              }
+        }
+        dynamic "port_sets" {
+          for_each = rule_variables.value.port_sets
+          content {
+            key = port_sets.key
+            port_set {
+              definition = [port_sets.value.definition]
             }
           }
-          }
         }
-        rules_source {
-          rules_string = var.suricata_file
-        }
+
       }
     }
+    rules_source {
+      rules_string = var.rp_rule_group.rules_source.rules_string
+    }
+  }
   }
 
 

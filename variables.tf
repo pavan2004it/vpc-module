@@ -1448,9 +1448,21 @@ variable "db_routes" {
     endpoint_id = optional(string)
   }))
 }
-variable "stateful_rule_group" {
-  type = any
-  default = {}
+variable "rp_rule_group" {
+  type = object({
+    rule_variables = object({
+      ip_sets   = map(object({
+        definition = list(string)
+      }))
+      port_sets = map(object({
+        definition = list(string)
+      }))
+    })
+    rules_source = object({
+      rules_string = string
+    })
+  })
+
 }
 
 variable "suricata_file" {
