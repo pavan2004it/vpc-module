@@ -630,7 +630,7 @@ resource "aws_networkfirewall_firewall" "rp-firewall" {
 }
 
 resource "aws_networkfirewall_firewall_policy" "rp-policy" {
-  name = "rp-allow-policy"
+  name = var.rule_policy_name
 
   firewall_policy {
     stateless_default_actions = ["aws:pass"]

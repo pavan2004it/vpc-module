@@ -1469,3 +1469,7 @@ variable "rule_group_name" {
 variable "rule_group_type" {
   type = string
 }
+
+variable "rule_policy_name" {
+  type = string
+}
