@@ -246,6 +246,7 @@ resource "aws_route" "private_route" {
   )
   destination_cidr_block = var.private_routes[count.index].destination_cidr_block
   gateway_id = var.private_routes[count.index].gateway_id
+  vpc_endpoint_id = var.private_routes[count.index].endpoint_id
 }
 
 ################################################################################
@@ -620,7 +621,7 @@ resource "aws_network_acl_rule" "database_outbound" {
 
 resource "aws_networkfirewall_firewall" "rp-firewall" {
   name                = "rp-firewall"
-  firewall_policy_arn = aws_networkfirewall_firewall_policy.default.arn
+  firewall_policy_arn = aws_networkfirewall_firewall_policy.rp-policy.arn
   vpc_id              = aws_vpc.this[0].id
 
   subnet_mapping {
@@ -628,43 +629,25 @@ resource "aws_networkfirewall_firewall" "rp-firewall" {
   }
 }
 
-resource "aws_networkfirewall_firewall_policy" "default" {
+resource "aws_networkfirewall_firewall_policy" "rp-policy" {
   name = "rp-allow-policy"
 
   firewall_policy {
     stateless_default_actions = ["aws:pass"]
-    stateless_fragment_default_actions = ["aws:pass"]
-#    stateful_rule_group_reference {
-#      resource_arn = aws_networkfirewall_rule_group.azdo_rule_group.arn
-#    }
+    stateless_fragment_default_actions = ["aws:drop"]
+    stateful_rule_group_reference {
+      resource_arn = aws_networkfirewall_rule_group.rp_rule_group.arn
+    }
   }
 }
 
-#resource "aws_networkfirewall_rule_group" "azdo_rule_group" {
-#  capacity = 100
-#  name     = "azdo-rule-group"
-#  type     = "STATELESS"
-#  rule_group {
-#    rule_variables {
-#      ip_sets {
-#        key   = "azdo_ip_set"
-#        value = ["0.0.0.0/0"]
-#      }
-#    }
-#    rules_source {
-#      rules_string = <<-EOT
-#        pass tcp from addrset(azdo_ip_set) to any port 443
-#        drop {}
-#      EOT
-#    }
-#  }
-#}
-
 # Ensure you associate this rule group with a firewall policy and the firewall.
-
-
-
-
+resource "aws_networkfirewall_rule_group" "rp_rule_group" {
+  capacity = var.rule_group_capacity
+  name     = var.rule_group_name
+  type     = var.rule_group_type
+  rule_group = var.stateful_rule_group
+}
 
 
 ################################################################################

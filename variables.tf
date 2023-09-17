@@ -1448,3 +1448,24 @@ variable "db_routes" {
     endpoint_id = optional(string)
   }))
 }
+variable "stateful_rule_group" {
+  type = object({
+    rule_group = any
+  })
+}
+
+variable "suricata_file" {
+  type = string
+}
+
+variable "rule_group_capacity" {
+  type = number
+}
+
+variable "rule_group_name" {
+  type = string
+}
+
+variable "rule_group_type" {
+  type = string
+}
