@@ -1450,6 +1450,7 @@ variable "db_routes" {
 }
 variable "stateful_rule_group" {
   type = any
+  default = {}
 }
 
 variable "suricata_file" {
