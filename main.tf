@@ -647,35 +647,31 @@ resource "aws_networkfirewall_rule_group" "rp_rule_group" {
   name     = var.rule_group_name
   type     = var.rule_group_type
   rule_group {
-    dynamic "rule_variables" {
-      for_each = [var.rp_rule_group.rule_variables]
-      content {
-        dynamic "ip_sets"{
-          for_each = rule_variables.value.ip_sets
-          content {
-            key = ip_sets.key
-            ip_set {
-              definition = [ip_sets.value.definition]
-            }
+    rule_variables {
+      dynamic "ip_sets"{
+        for_each = var.rp_rule_group.rule_variables.ip_sets
+        content {
+          key = ip_sets.key
+          ip_set {
+            definition = ip_sets.value.definition
           }
         }
-        dynamic "port_sets" {
-          for_each = rule_variables.value.port_sets
-          content {
-            key = port_sets.key
-            port_set {
-              definition = [port_sets.value.definition]
-            }
+      }
+      dynamic "port_sets" {
+        for_each = var.rp_rule_group.rule_variables.port_sets
+        content {
+          key = port_sets.key
+          port_set {
+            definition = port_sets.value.definition
           }
         }
-
       }
     }
     rules_source {
-      rules_string = var.suricata_file
+      rules_string = file(var.rp_rule_group.rules_source.rules_string)
     }
   }
-  }
+}
 
 
 ################################################################################
