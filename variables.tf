@@ -1462,11 +1462,6 @@ variable "rp_rule_group" {
       rules_string = string
     })
   })
-
-}
-
-variable "suricata_file" {
-  type = string
 }
 
 variable "rule_group_capacity" {
