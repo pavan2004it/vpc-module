@@ -1449,9 +1449,7 @@ variable "db_routes" {
   }))
 }
 variable "stateful_rule_group" {
-  type = object({
-    rule_group = any
-  })
+  type = any
 }
 
 variable "suricata_file" {
