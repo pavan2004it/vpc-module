@@ -686,7 +686,7 @@ resource "aws_networkfirewall_logging_configuration" "alert_config" {
   }
 }
 
-resource "aws_networkfirewall_logging_configuration" "alert_config" {
+resource "aws_networkfirewall_logging_configuration" "flow_config" {
   firewall_arn = aws_networkfirewall_firewall.rp-firewall.arn
   logging_configuration {
     log_destination_config {
