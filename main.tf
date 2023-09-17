@@ -673,6 +673,39 @@ resource "aws_networkfirewall_rule_group" "rp_rule_group" {
   }
 }
 
+resource "aws_networkfirewall_logging_configuration" "alert_config" {
+  firewall_arn = aws_networkfirewall_firewall.rp-firewall.arn
+  logging_configuration {
+    log_destination_config {
+      log_destination = {
+        logGroup = aws_cloudwatch_log_group.firewall_alert.name
+      }
+      log_destination_type = var.log_destination_type
+      log_type             = "ALERT"
+    }
+  }
+}
+
+resource "aws_networkfirewall_logging_configuration" "alert_config" {
+  firewall_arn = aws_networkfirewall_firewall.rp-firewall.arn
+  logging_configuration {
+    log_destination_config {
+      log_destination = {
+        logGroup = aws_cloudwatch_log_group.firewall_flow.name
+      }
+      log_destination_type = var.log_destination_type
+      log_type             = "FLOW"
+    }
+  }
+}
+
+resource "aws_cloudwatch_log_group" "firewall_alert" {
+  name = "rp-firewall-alert-group"
+}
+resource "aws_cloudwatch_log_group" "firewall_flow" {
+  name = "rp-firewall-flow-group"
+}
+
 
 ################################################################################
 # Route Tables

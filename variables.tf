@@ -1479,3 +1479,8 @@ variable "rule_group_type" {
 variable "rule_policy_name" {
   type = string
 }
+
+variable "log_destination_type" {
+  type = string
+  default = "CloudWatchLogs"
+}
