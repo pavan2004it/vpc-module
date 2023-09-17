@@ -672,7 +672,7 @@ resource "aws_networkfirewall_rule_group" "rp_rule_group" {
       }
     }
     rules_source {
-      rules_string = var.rp_rule_group.rules_source.rules_string
+      rules_string = var.suricata_file
     }
   }
   }
