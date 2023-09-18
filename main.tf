@@ -5,6 +5,7 @@ locals {
   len_alb_subnets         = max(length(var.alb_subnets), length(var.alb_subnet_ipv6_prefixes))
   len_azdo_subnets        = max(length(var.azdo_subnets), length(var.azdo_subnet_ipv6_prefixes))
   len_firewall_subnets =  max(length(var.firewall_subnets), length(var.firewall_subnet_ipv6_prefixes))
+  len_nat_subnets = max(length(var.nat_subnets), length(var.nat_subnet_ipv6_prefixes))
 
   max_subnet_length = max(
     local.len_private_subnets,
@@ -12,7 +13,8 @@ locals {
     local.len_database_subnets,
     local.len_alb_subnets,
     local.len_azdo_subnets,
-    local.len_firewall_subnets
+    local.len_firewall_subnets,
+    local.len_nat_subnets
   )
 
   # Use `local.vpc_id` to give a hint to Terraform that subnets should be deleted before secondary CIDR blocks can be free!
@@ -182,6 +184,41 @@ resource "aws_network_acl_rule" "public_outbound" {
   cidr_block      = lookup(var.public_outbound_acl_rules[count.index], "cidr_block", null)
   ipv6_cidr_block = lookup(var.public_outbound_acl_rules[count.index], "ipv6_cidr_block", null)
 }
+
+################################################################################
+# Nat Gateway Subnet
+################################################################################
+
+locals {
+  create_nat_subnets = local.create_vpc && local.len_nat_subnets > 0
+}
+
+resource "aws_subnet" "nat" {
+  count = local.create_nat_subnets ? local.len_nat_subnets : 0
+
+  assign_ipv6_address_on_creation                = var.enable_ipv6 && var.nat_subnet_ipv6_native ? true : var.nat_subnet_assign_ipv6_address_on_creation
+  availability_zone                              = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) > 0 ? element(var.azs, count.index) : null
+  availability_zone_id                           = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
+  cidr_block                                     = var.nat_subnet_ipv6_native ? null : element(concat(var.nat_subnets, [""]), count.index)
+  enable_dns64                                   = var.enable_ipv6 && var.nat_subnet_enable_dns64
+  enable_resource_name_dns_aaaa_record_on_launch = var.enable_ipv6 && var.nat_subnet_enable_resource_name_dns_aaaa_record_on_launch
+  enable_resource_name_dns_a_record_on_launch    = !var.nat_subnet_ipv6_native && var.nat_subnet_enable_resource_name_dns_a_record_on_launch
+  ipv6_cidr_block                                = var.enable_ipv6 && length(var.nat_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.nat_subnet_ipv6_prefixes[count.index]) : null
+  ipv6_native                                    = var.enable_ipv6 && var.nat_subnet_ipv6_native
+  map_public_ip_on_launch                        = var.map_public_ip_on_launch
+  private_dns_hostname_type_on_launch            = var.nat_subnet_private_dns_hostname_type_on_launch
+  vpc_id                                         = local.vpc_id
+
+  tags = merge(
+    {
+      Name = try(
+        var.nat_subnet_names[count.index],
+        format("${var.name}-${var.nat_subnet_suffix}-%s", element(var.azs, count.index))
+      )
+    },
+  )
+}
+
 
 ################################################################################
 # Private Subnets
@@ -743,7 +780,7 @@ resource "aws_eip" "nat_ip" {
 }
 
 resource "aws_nat_gateway" "rp-nat" {
-  subnet_id = aws_subnet.public[0].id
+  subnet_id = aws_subnet.nat[0].id
   connectivity_type = "public"
   allocation_id = aws_eip.nat_ip.id
   tags = {
@@ -869,4 +906,27 @@ resource "aws_vpn_connection_route" "vpn_connection_routes" {
   for_each = var.aws_vpn_connection_routes
   destination_cidr_block = each.value["destination_cidr_block"]
   vpn_connection_id = each.value["vpn_connection_id"]
+}
+
+################################################################################
+# RAM Association
+################################################################################
+resource "aws_ram_resource_share" "prod_subnet_share" {
+  name = "rp-prod-share"
+}
+
+resource "aws_ram_principal_association" "prod-acc-association" {
+  principal          = var.aws_prod_account_number
+  resource_share_arn = aws_ram_resource_share.prod_subnet_share.arn
+}
+
+resource "aws_ram_resource_association" "subnet_association" {
+  resource_arn       = concat(
+    slice(aws_subnet.public[*].arn, 0, 2),
+    slice(aws_subnet.private[*].arn, 0, 2),
+    slice(aws_subnet.database[*].arn, 0, 2),
+    slice(aws_subnet.alb[*].arn, 0, 2),
+    slice(aws_subnet.azdo[*].arn, 0, 2)
+  )
+  resource_share_arn = aws_ram_resource_share.prod_subnet_share.arn
 }

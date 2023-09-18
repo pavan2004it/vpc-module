@@ -424,6 +424,83 @@ variable "private_acl_tags" {
   default     = {}
 }
 
+
+################################################################################
+# NAT Subnets
+################################################################################
+
+variable "nat_subnets" {
+  description = "A list of firewall subnets inside the VPC"
+  type        = list(string)
+  default     = []
+}
+
+variable "nat_subnet_assign_ipv6_address_on_creation" {
+  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
+  type        = bool
+  default     = false
+}
+
+variable "nat_subnet_enable_dns64" {
+  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
+  type        = bool
+  default     = true
+}
+
+variable "nat_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
+  type        = bool
+  default     = true
+}
+
+variable "nat_subnet_enable_resource_name_dns_a_record_on_launch" {
+  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
+  type        = bool
+  default     = false
+}
+
+variable "nat_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 firewall subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  type        = list(string)
+  default     = []
+}
+
+variable "nat_subnet_ipv6_native" {
+  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
+  type        = bool
+  default     = false
+}
+
+variable "nat_subnet_private_dns_hostname_type_on_launch" {
+  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
+  type        = string
+  default     = null
+}
+
+variable "nat_subnet_names" {
+  description = "Explicit values to use in the Name tag on firewall subnets. If empty, Name tags are generated"
+  type        = list(string)
+  default     = []
+}
+
+variable "nat_subnet_suffix" {
+  description = "Suffix to append to firewall subnets name"
+  type        = string
+  default     = "db"
+}
+
+variable "create_nat_subnet_route_table" {
+  description = "Controls if separate route table for firewall should be created"
+  type        = bool
+  default     = false
+}
+
+variable "create_nat_subnets" {
+  description = "Controls if separate route table for firewall should be created"
+  type        = bool
+  default     = true
+}
+
 ################################################################################
 # AZDO Subnets
 ################################################################################
@@ -1448,39 +1525,7 @@ variable "db_routes" {
     endpoint_id = optional(string)
   }))
 }
-#variable "rp_rule_group" {
-#  type = object({
-#    rule_variables = object({
-#      ip_sets   = map(object({
-#        definition = list(string)
-#      }))
-#      port_sets = map(object({
-#        definition = list(string)
-#      }))
-#    })
-#    rules_source = object({
-#      rules_string = string
-#    })
-#  })
-#}
-#
-#variable "rule_group_capacity" {
-#  type = number
-#}
-#
-#variable "rule_group_name" {
-#  type = string
-#}
-#
-#variable "rule_group_type" {
-#  type = string
-#}
-#
-#variable "rule_policy_name" {
-#  type = string
-#}
-#
-#variable "log_destination_type" {
-#  type = string
-#  default = "CloudWatchLogs"
-#}
+
+variable "aws_prod_account_number" {
+  type = string
+}
