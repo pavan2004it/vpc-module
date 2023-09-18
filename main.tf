@@ -387,7 +387,6 @@ resource "aws_subnet" "alb" {
 }
 
 resource "aws_route_table" "protected_route_table" {
-  depends_on = [aws_networkfirewall_firewall.rp-firewall]
   count = var.create_protected_route_table ? 1 : 0
 
   vpc_id = local.vpc_id
