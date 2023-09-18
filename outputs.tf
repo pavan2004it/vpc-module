@@ -126,7 +126,7 @@ output "alb_subnets_cidr_blocks" {
 # Firewall Subnets
 ################################################################################
 
-output "firewall_subnets" {
+output "firewall_subnet_id" {
   description = "List of IDs of public subnets"
   value       = aws_subnet.firewall[*].id
 }
