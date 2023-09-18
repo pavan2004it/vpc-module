@@ -825,6 +825,17 @@ resource "aws_vpn_connection_route" "vpn_connection_routes" {
 ################################################################################
 # RAM Association
 ################################################################################
+
+locals {
+  all_subnet_arns = concat(
+    slice(aws_subnet.public[*].arn, 0, 2),
+    slice(aws_subnet.private[*].arn, 0, 2),
+    slice(aws_subnet.database[*].arn, 0, 2),
+    slice(aws_subnet.alb[*].arn, 0, 2),
+    slice(aws_subnet.azdo[*].arn, 0, 2)
+  )
+}
+
 resource "aws_ram_resource_share" "prod_subnet_share" {
   name = "rp-prod-share"
 }
@@ -835,12 +846,7 @@ resource "aws_ram_principal_association" "prod-acc-association" {
 }
 
 resource "aws_ram_resource_association" "subnet_association" {
-  resource_arn       = concat(
-    slice(aws_subnet.public[*].arn, 0, 2),
-    slice(aws_subnet.private[*].arn, 0, 2),
-    slice(aws_subnet.database[*].arn, 0, 2),
-    slice(aws_subnet.alb[*].arn, 0, 2),
-    slice(aws_subnet.azdo[*].arn, 0, 2)
-  )
+  for_each = toset(local.all_subnet_arns)
+  resource_arn = each.value
   resource_share_arn = aws_ram_resource_share.prod_subnet_share.arn
 }
