@@ -846,7 +846,7 @@ resource "aws_ram_principal_association" "prod-acc-association" {
 }
 
 resource "aws_ram_resource_association" "subnet_association" {
-  for_each = toset(local.all_subnet_arns)
-  resource_arn = each.value
+  count               = length(local.all_subnet_arns)
+  resource_arn = local.all_subnet_arns[count.index]
   resource_share_arn = aws_ram_resource_share.prod_subnet_share.arn
 }
