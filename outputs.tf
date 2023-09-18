@@ -123,6 +123,19 @@ output "alb_subnets_cidr_blocks" {
 }
 
 ################################################################################
+# Firewall Subnets
+################################################################################
+
+output "firewall_subnets" {
+  description = "List of IDs of public subnets"
+  value       = aws_subnet.firewall[*].id
+}
+output "firewall_subnets_cidr_blocks" {
+  description = "List of cidr_blocks of private subnets"
+  value       = compact(aws_subnet.firewall[*].cidr_block)
+}
+
+################################################################################
 # AZDO Subnets
 ################################################################################
 
