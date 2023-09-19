@@ -602,7 +602,7 @@ resource "aws_route" "db_route" {
     var.create_database_subnet_route_table ? 1: 0,
   )
   destination_cidr_block = var.db_routes[count.index].destination_cidr_block
-  endpoint_id = var.db_routes[count.index].endpoint_id
+  vpc_endpoint_id = var.db_routes[count.index].endpoint_id
 }
 
 ################################################################################
