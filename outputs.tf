@@ -167,6 +167,25 @@ output "private_subnets_cidr_blocks" {
   value       = compact(aws_subnet.private[*].cidr_block)
 }
 
+################################################################################
+# Nat Subnets
+################################################################################
+
+output "nat_subnets" {
+  description = "List of IDs of private subnets"
+  value       = aws_subnet.nat[*].id
+}
+
+output "nat_subnet_arns" {
+  description = "List of ARNs of private subnets"
+  value       = aws_subnet.nat[*].arn
+}
+
+output "nat_subnets_cidr_blocks" {
+  description = "List of cidr_blocks of private subnets"
+  value       = compact(aws_subnet.nat[*].cidr_block)
+}
+
 
 ################################################################################
 # Database Subnets

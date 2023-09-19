@@ -219,6 +219,15 @@ resource "aws_subnet" "nat" {
   )
 }
 
+resource "aws_route_table_association" "nat-protected-association" {
+  count = local.create_nat_subnets ? local.len_nat_subnets : 0
+  subnet_id = element(aws_subnet.nat[*].id, count.index)
+  route_table_id = element(
+    coalescelist(aws_route_table.protected_route_table[*].id),
+    var.create_protected_route_table ? 1: 0,
+  )
+}
+
 
 ################################################################################
 # Private Subnets
