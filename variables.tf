@@ -1529,3 +1529,7 @@ variable "db_routes" {
 variable "aws_prod_account_number" {
   type = string
 }
+
+variable "ram_subnet_arns" {
+  type = list(string)
+}
