@@ -103,6 +103,12 @@ output "public_subnets" {
   description = "List of IDs of public subnets"
   value       = aws_subnet.public[*].id
 }
+
+output "public_subnet_arns" {
+  description = "List of ARNs of private subnets"
+  value       = aws_subnet.public[*].arn
+}
+
 output "public_subnets_cidr_blocks" {
   description = "List of cidr_blocks of private subnets"
   value       = compact(aws_subnet.public[*].cidr_block)
@@ -117,6 +123,12 @@ output "alb_subnets" {
   description = "List of IDs of public subnets"
   value       = aws_subnet.alb[*].id
 }
+
+output "alb_subnet_arns" {
+  description = "List of ARNs of private subnets"
+  value       = aws_subnet.alb[*].arn
+}
+
 output "alb_subnets_cidr_blocks" {
   description = "List of cidr_blocks of private subnets"
   value       = compact(aws_subnet.alb[*].cidr_block)
@@ -143,6 +155,12 @@ output "azdo_subnets" {
   description = "List of IDs of public subnets"
   value       = aws_subnet.azdo[*].id
 }
+
+output "azdo_subnet_arns" {
+  description = "List of ARNs of private subnets"
+  value       = aws_subnet.azdo[*].arn
+}
+
 output "azdo_subnets_cidr_blocks" {
   description = "List of cidr_blocks of private subnets"
   value       = compact(aws_subnet.azdo[*].cidr_block)
