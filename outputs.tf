@@ -172,7 +172,7 @@ output "azdo_subnets_cidr_blocks" {
 
 output "private_subnets" {
   description = "List of IDs of private subnets"
-  value       = aws_subnet.private[*].id
+  value       = { for s in aws_subnet.private : s.availability_zone => s.id... }
 }
 
 output "private_subnet_arns" {
