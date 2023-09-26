@@ -700,6 +700,9 @@ resource "aws_route" "ingress-igw-route" {
 
 resource "aws_eip" "nat_ip" {
   domain = "vpc"
+  tags = {
+    Name = "central-nat-eip"
+  }
 }
 
 resource "aws_nat_gateway" "rp-nat" {
