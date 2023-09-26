@@ -501,6 +501,14 @@ variable "create_nat_subnets" {
   default     = true
 }
 
+variable "nat_subnet_tags" {
+  description = "Additional tags for the database subnets"
+  type        = map(string)
+  default     = {
+    Tier="nat"
+  }
+}
+
 ################################################################################
 # AZDO Subnets
 ################################################################################

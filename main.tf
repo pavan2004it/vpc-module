@@ -216,7 +216,9 @@ resource "aws_subnet" "nat" {
         format("${var.name}-${var.nat_subnet_suffix}-%s", element(var.azs, count.index))
       )
     },
+    var.nat_subnet_tags
   )
+
 }
 
 resource "aws_route_table_association" "nat-protected-association" {
